@@ -1,39 +1,20 @@
-
 S3 Plugin
-===
-[![Travis Badge](https://travis-ci.org/MikaAK/s3-plugin-webpack.svg?branch=master)](https://travis-ci.org/MikaAK/s3-plugin-webpack)
-[![Code Climate](https://codeclimate.com/github/MikaAK/s3-plugin-webpack/badges/gpa.svg)](https://codeclimate.com/github/MikaAK/s3-plugin-webpack)
+Travis Badge Code Climate
 
 This plugin will upload all built assets to s3
 
-
-### Install Instructions
-
-```bash
+Install Instructions
 $ npm i webpack-s3-plugin
-```
 Note: This plugin needs NodeJS > 0.12.0
 
-### Usage Instructions
-> I notice a lot of people are setting the `directory` option when the files are part of their build. Please don't set   `directory` if you're uploading your build. Using the `directory` option reads the files after compilation to upload instead of from the build process.
+Usage Instructions
+I notice a lot of people are setting the directory option when the files are part of their build. Please don't set directory if your uploading your build. Using the directory option reads the files after compilation to upload instead of from the build process.
 
-> You can also use a [credentials file](https://blogs.aws.amazon.com/security/post/Tx3D6U6WSFGOK2H/A-New-and-Standardized-Way-to-Manage-Credentials-in-the-AWS-SDKs) from AWS. To set the profile set your s3 options to the following:
-```
-s3Options: {
-  credentials: new AWS.SharedIniFileCredentials({profile: 'PROFILE_NAME'})
-}
-```
+You can also use a credentials file from AWS.
 
-> s3UploadOptions default to `ACL: 'public-read'` so you may need to override if you have other needs. See [#28](https://github.com/MikaAK/s3-plugin-webpack/issues/28#issuecomment-309171024)
-
-
-##### Require `webpack-s3-plugin`
-```javascript
+Require webpack-s3-plugin
 var S3Plugin = require('webpack-s3-plugin')
-```
-
-##### With exclude
-```javascript
+With exclude
 var config = {
   plugins: [
     new S3Plugin({
@@ -54,10 +35,7 @@ var config = {
     })
   ]
 }
-```
-
-##### With include
-```javascript
+With include
 var config = {
   plugins: [
     new S3Plugin({
@@ -74,13 +52,9 @@ var config = {
     })
   ]
 }
-```
+Advanced include and exclude rules
+include and exclude rules behave similarly to Webpack's loader options. In addition to a RegExp you can pass a function which will be called with the path as its first argument. Returning a truthy value will match the rule. You can also pass an Array of rules, all of which must pass for the file to be included or excluded.
 
-##### Advanced `include` and `exclude rules`
-
-`include` and `exclude` rules behave similarly to Webpack's loader options.  In addition to a RegExp you can pass a function which will be called with the path as its first argument.  Returning a truthy value will match the rule.  You can also pass an Array of rules, all of which must pass for the file to be included or excluded.
-
-```javascript
 import isGitIgnored from 'is-gitignored'
 
 // Up to you how to handle this
@@ -111,10 +85,7 @@ var config = {
     })
   ]
 }
-```
-
-##### With basePathTransform
-```javascript
+With basePathTransform
 import gitsha from 'gitsha'
 
 var addSha = function() {
@@ -146,17 +117,13 @@ var config = {
 
 
 // Will output to /${mySha}/${fileName}
-```
-
-##### With CloudFront invalidation
-```javascript
+With CloudFront invalidation
 var config = {
   plugins: [
     new S3Plugin({
       s3Options: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        sessionToken: 'a234jasd'  // (optional) AWS session token for signing requests
       },
       s3UploadOptions: {
         Bucket: 'MyBucket'
@@ -168,10 +135,7 @@ var config = {
     })
   ]
 }
-```
-
-##### With Dynamic Upload Options
-```javascript
+With Dynamic Upload Options
 var config = {
   plugins: [
     new S3Plugin({
@@ -196,34 +160,26 @@ var config = {
     })
   ]
 }
-```
+Options
+exclude: A Pattern to match for excluded content. Behaves similarly to webpack's loader configuration.
+include: A Pattern to match for included content. Behaves the same as the exclude.
+s3Options: Provide keys for upload extention of s3Config
+s3UploadOptions: Provide upload options putObject
+basePath: Provide the namespace where upload files on S3
+directory: Provide a directory to upload (if not supplied will upload js/css from compilation)
+htmlFiles: Html files to cdnize (defaults to all in output directory)
+cdnizerCss: Config for css cdnizer check below
+noCdnizer: Disable cdnizer (defaults true if no cdnizerOptions passed)
+cdnizerOptions: options to pass to cdnizer
+basePathTransform: transform the base path to add a folder name. Can return a promise or a string
+progress: Enable progress bar (defaults true)
+Contributing
+All contributions are welcome. Please make a pull request and make sure things still pass after running npm run test For tests you will need to either have the environment variables set or setup a .env file. There's a .env.sample so you can cp .env.sample .env and fill it in. Make sure to add any new environment variables.
 
-### Options
-
-- `exclude`: A Pattern to match for excluded content. Behaves similarly to webpack's loader configuration.
-- `include`: A Pattern to match for included content. Behaves the same as `exclude`.
-- `s3Options`: Provide keys for upload options of [s3Config](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Config.html#constructor-property)
-- `s3UploadOptions`: Provide upload options [putObject](http://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/S3.html#putObject-property )
-- `basePath`: Provide the namespace of uploaded files on S3
-- `directory`: Provide a directory to upload (if not supplied, will upload js/css from compilation)
-- `htmlFiles`: Html files to cdnize (defaults to all in output directory)
-- `cdnizerCss`: Config for css cdnizer check below
-- `noCdnizer`: Disable cdnizer (defaults to true if no cdnizerOptions passed)
-- `cdnizerOptions`: options to pass to [cdnizer](https://www.npmjs.com/package/cdnizer)
-- `basePathTransform`: transform the base path to add a folder name. Can return a promise or a string
-- `progress`: Enable progress bar (defaults true)
-- `priority`: priority order to your files as regex array. The ones not matched by regex are uploaded first. This rule becomes useful when avoiding s3 eventual consistency issues
-
-### Contributing
-All contributions are welcome. Please make a pull request and make sure things still pass after running `npm run test`
-For tests you will need to either have the environment variables set or setup a .env file. There's a .env.sample so you can `cp .env.sample .env` and fill it in. Make sure to add any new environment variables.
-
-#### Commands to be aware of
-###### *WARNING*: The test suit generates random files for certain checks. Ensure you delete files leftover on your Bucket.
-- `npm run test` - Run test suit (You must have the .env file setup)
-- `npm run build` - Run build
-
-### Thanks
-
-- Thanks to [@Omer](https://github.com/Omer) for fixing credentials from `~/.aws/credentials`
-- Thanks to [@lostjimmy](https://github.com/lostjimmy) for pointing out `path.sep` for Windows compatibility
+Commands to be aware of
+WARNING: The test suit generates random files for certain checks. Ensure you delete files leftover on your Bucket.
+npm run test - Run test suit (You must have the .env file setup)
+npm run build - Run build
+Thanks
+Thanks to @Omer for fixing credentials from ~/.aws/credentials
+Thanks to @lostjimmy for pointing out path.sep for Windows compatibility
