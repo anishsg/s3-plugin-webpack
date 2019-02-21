@@ -86,6 +86,31 @@ describe('S3 Webpack Upload', function() {
         .then(() => testHelpers.fetch(`${testHelpers.S3_URL}${BASE_PATH}/${randomFile.fileName}`))
         .then(fileBody => assert.match(fileBody, testHelpers.S3_ERROR_REGEX, 'random file exists'))
     })
+
+    describe('with priority', function() {
+      it('uploads build to s3 in priority order', function() {
+        testHelpers.createOutputPath()
+        const s3Config = {priority: [/css/]}
+        const config = testHelpers.createWebpackConfig({s3Config})
+
+        return testHelpers.runWebpackConfig({config})
+          .then(testForErrorsOrGetFileNames)
+          .then((files) => {
+            const isCss = file => file.endsWith('css')
+            const isJs = file => file.endsWith('js')
+            const cssFileName = files.find(isCss)
+            const jsFilename = files.find(isJs)
+
+            return Promise.all([
+              testHelpers.getS3Object(cssFileName),
+              testHelpers.getS3Object(jsFilename)
+            ])
+          })
+          .then(([cssObject, jsObject]) => {
+            assert.isTrue(cssObject.LastModified.getTime() >= jsObject.LastModified.getTime())
+          })
+      })
+    })
   })
 
   describe('basePathTransform', function() {
@@ -196,6 +221,26 @@ describe('S3 Webpack Upload', function() {
       .then(fileNames => Promise.resolve(fileNames.filter(name => /.*\.html$/.test(name))))
       .then(function([htmlFile]) {
         var outputFile = testHelpers.readFileFromOutputDir(htmlFile),
+            s3UrlRegex = new RegExp(testHelpers.S3_URL, 'gi')
+
+        return assert.match(outputFile, s3UrlRegex, `Url not changed to ${testHelpers.S3_URL}`)
+      })
+  })
+
+  it('cdnizes links inside of CSS files', function() {
+    var s3Config = {
+      cdnizerOptions: {
+        defaultCDNBase: testHelpers.S3_URL
+      }
+    }
+
+    var config = testHelpers.createWebpackConfig({s3Config})
+
+    return testHelpers.runWebpackConfig({config})
+      .then(testForErrorsOrGetFileNames)
+      .then(fileNames => Promise.resolve(fileNames.filter(name => /.*\.css$/.test(name))))
+      .then(function([file]) {
+        var outputFile = testHelpers.readFileFromOutputDir(file),
             s3UrlRegex = new RegExp(testHelpers.S3_URL, 'gi')
 
         return assert.match(outputFile, s3UrlRegex, `Url not changed to ${testHelpers.S3_URL}`)

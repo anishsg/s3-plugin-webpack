@@ -3,13 +3,15 @@ import https from 'https'
 import path from 'path'
 import webpack from 'webpack'
 import fs from 'fs'
+import {S3} from 'aws-sdk'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import s3Opts from './s3_options'
 import S3WebpackPlugin from '../src/s3_plugin'
 import {assert} from 'chai'
 import {spawnSync} from 'child_process'
+import ExtractTextPlugin from 'extract-text-webpack-plugin'
 
-const S3_URL = `https://s3-${s3Opts.AWS_REGION}.amazonaws.com/${s3Opts.AWS_BUCKET}/`,
+const S3_URL = `https://s3.dualstack.${s3Opts.AWS_REGION}.amazonaws.com/${s3Opts.AWS_BUCKET}/`,
       S3_ERROR_REGEX = /<Error>/,
       OUTPUT_FILE_NAME = 's3Test',
       OUTPUT_PATH = path.resolve(__dirname, '.tmp'),
@@ -108,8 +110,28 @@ export default {
   createWebpackConfig({config, s3Config} = {}) {
     return _.extend({
       entry: ENTRY_PATH,
+      module: {
+        rules: [{
+          test: /\.png/,
+          use: [{
+            loader: 'file-loader',
+            options: {
+              name: '[name]-[hash].[ext]'
+            }
+          }]
+        },
+        {
+          test: /\.css$/,
+          use: ExtractTextPlugin.extract({
+            fallback: 'style-loader',
+            use: 'css-loader'
+          })
+        }
+        ]
+      },
       plugins: [
         new HtmlWebpackPlugin(),
+        new ExtractTextPlugin('[name]-[hash].css'),
         generateS3Config(s3Config)
       ],
       output: {
@@ -122,8 +144,15 @@ export default {
   runWebpackConfig({config}) {
     this.createOutputPath()
 
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       webpack(config, function(err, stats) {
+        if (err) {
+          reject(err)
+
+          return
+        }
+
+        // console.log(JSON.stringify(arguments, null, 2))
         if (stats.toJson().errors.length)
           resolve({errors: stats.toJson().errors})
         else
@@ -196,5 +225,23 @@ export default {
 
   getCloudfrontInvalidateOptions() {
     return s3Opts.cloudfrontInvalidateOptions
+  },
+
+  getS3Object(key) {
+    const s3 = new S3({
+      accessKeyId: s3Opts.AWS_ACCESS_KEY,
+      secretAccessKey: s3Opts.AWS_SECRET_ACCESS_KEY
+    })
+
+
+    return new Promise((resolve, reject) => {
+      s3.getObject({Bucket: s3Opts.AWS_BUCKET, Key: key}, function(err, data) {
+        if (!err) {
+          resolve(data)
+        } else {
+          reject(err)
+        }
+      })
+    })
   }
 }
