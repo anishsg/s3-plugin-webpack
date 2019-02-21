@@ -8,14 +8,9 @@ $ npm i webpack-s3-plugin
 Note: This plugin needs NodeJS > 0.12.0
 
 Usage Instructions
-I notice a lot of people are setting the directory option when the files are part of their build. Please don't set directory if you're uploading your build. Using the directory option reads the files after compilation to upload instead of from the build process.
+I notice a lot of people are setting the directory option when the files are part of their build. Please don't set directory if your uploading your build. Using the directory option reads the files after compilation to upload instead of from the build process.
 
-You can also use a credentials file from AWS. To set the profile set your s3 options to the following:
-
-s3Options: {
-  credentials: new AWS.SharedIniFileCredentials({profile: 'PROFILE_NAME'})
-}
-s3UploadOptions default to ACL: 'public-read' so you may need to override if you have other needs. See #28
+You can also use a credentials file from AWS.
 
 Require webpack-s3-plugin
 var S3Plugin = require('webpack-s3-plugin')
@@ -129,7 +124,6 @@ var config = {
       s3Options: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        sessionToken: 'a234jasd'  // (optional) AWS session token for signing requests
       },
       s3UploadOptions: {
         Bucket: 'MyBucket'
@@ -168,18 +162,17 @@ var config = {
 }
 Options
 exclude: A Pattern to match for excluded content. Behaves similarly to webpack's loader configuration.
-include: A Pattern to match for included content. Behaves the same as exclude.
-s3Options: Provide keys for upload options of s3Config
+include: A Pattern to match for included content. Behaves the same as the exclude.
+s3Options: Provide keys for upload extention of s3Config
 s3UploadOptions: Provide upload options putObject
-basePath: Provide the namespace of uploaded files on S3
-directory: Provide a directory to upload (if not supplied, will upload js/css from compilation)
+basePath: Provide the namespace where upload files on S3
+directory: Provide a directory to upload (if not supplied will upload js/css from compilation)
 htmlFiles: Html files to cdnize (defaults to all in output directory)
 cdnizerCss: Config for css cdnizer check below
-noCdnizer: Disable cdnizer (defaults to true if no cdnizerOptions passed)
+noCdnizer: Disable cdnizer (defaults true if no cdnizerOptions passed)
 cdnizerOptions: options to pass to cdnizer
 basePathTransform: transform the base path to add a folder name. Can return a promise or a string
 progress: Enable progress bar (defaults true)
-priority: priority order to your files as regex array. The ones not matched by regex are uploaded first. This rule becomes useful when avoiding s3 eventual consistency issues
 Contributing
 All contributions are welcome. Please make a pull request and make sure things still pass after running npm run test For tests you will need to either have the environment variables set or setup a .env file. There's a .env.sample so you can cp .env.sample .env and fill it in. Make sure to add any new environment variables.
 

@@ -1,7 +1,6 @@
 import dotenv from 'dotenv'
 
-if (!process.env.CI)
-  dotenv.load()
+dotenv.load()
 
 const {
   AWS_BUCKET,

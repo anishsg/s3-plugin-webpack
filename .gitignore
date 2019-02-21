@@ -1,3 +1,4 @@
+
 # Created by https://www.gitignore.io
 
 ### Node ###
@@ -86,8 +87,4 @@ $RECYCLE.BIN/
 
 .env
 test/.tmp
-
-.idea/
-
-s3-plugin-webpack.iml
 dist/
