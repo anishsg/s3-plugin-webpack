@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/webpack-contrib/s3-plugin-webpack",
   "dependencies": {
-    "aws-sdk": "2.1020.0",
+    "aws-sdk": "2.1015.0",
     "cdnizer": "^1.1.5",
     "lodash": "^4.13.0",
     "mime": "^2.1.0",
